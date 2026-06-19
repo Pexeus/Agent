@@ -10,9 +10,9 @@ export interface ToolCommand {
     reasoning: string
 }
 
-export interface Instruction {
-    type: 'Instruction'
-    instruction: string
+export interface UserMessage {
+    type: 'UserMessage'
+    content: string
 }
 
 export interface ToolOutput {
@@ -31,7 +31,7 @@ export interface AgentOptions {
 
 export type HistoryEntry =
     ToolCommand |
-    Instruction |
+    UserMessage |
     ToolOutput |
     ToolError
 
@@ -42,6 +42,19 @@ export interface State {
     functions: Record<string, any>
     workspace: Workspace
     history: HistoryEntry[]
+}
+
+export type StepResult =
+    StepContinue |
+    StepBlock
+
+export interface StepContinue {
+    status: 'continue'
+}
+
+export interface StepBlock {
+    status: 'block'
+    output: string
 }
 
 export interface ToolFunction<T extends z.ZodTypeAny> {

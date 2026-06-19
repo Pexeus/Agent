@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { AgentOptions, ExitSignal, HistoryEntry, ToolCalls, ToolFunction } from "../types.js";
+import { AgentOptions, ExitSignal, HistoryEntry, StepResult, ToolCalls, ToolFunction } from "../types.js";
 import { toVercelFunctionDefinition, getPromt } from "../util.js";
 import { Workspace } from "./Workspace.js";
 import { google } from "@ai-sdk/google";
@@ -25,7 +25,7 @@ export class Agent {
         this.systemPrompt = this.getSystemPrompt()
         this.loadedFunctions = workspace.getFunctionDefinitions(permittedFunctions)
 
-        //maybe find a better way to do this
+        //TODO find a better way to do this
         this.loadedFunctions.exit = {
             blocking: true,
             description: 'Use this to exit operations with a message',
@@ -36,25 +36,22 @@ export class Agent {
         }
     }
 
-    async invoke(instructions: string) {
+    async invoke(message: string) {
         this.history.add({
-            type: 'Instruction',
-            instruction: instructions
+            type: 'UserMessage',
+            content: message
         })
 
-        //temp
-        try {
-            while (true) {
-                await this.step()
+        while (true) {
+            const stepResult = await this.step()
+
+            if (stepResult.status == 'block') {
+                return stepResult.output
             }
-        }
-        catch (err) {
-            if (err instanceof ExitSignal) return err.message
-            throw err
         }
     }
 
-    async step() {
+    async step(): Promise<StepResult> {
         const state = {
             workspace: this.workspace.getState(),
             history: this.history.getCompressed()
@@ -81,13 +78,40 @@ export class Agent {
         })
 
         console.log(chalk.gray(result.reasoningText));
-        await this.handleToolCalls(result.staticToolCalls)
+
+        //execute tool calls
+        await this.executeToolCalls(result.staticToolCalls)
+
+        //return step result
+        const stepResult = await this.getStepStatusResult(result.staticToolCalls)
+        return stepResult
     }
 
-    private async handleToolCalls(toolCalls: ToolCalls) {
-        let exitSignal = false
-        let exitMessage
+    private async getStepStatusResult(toolCalls: ToolCalls): Promise<StepResult> {
+        for (const command of toolCalls) {
+            const { reasoning, ...functionParams } = command.input as any;
 
+            if (command.toolName == 'exit') {
+                return {
+                    status: 'block',
+                    output: functionParams.returnMessage
+                }
+            }
+
+            if (this.loadedFunctions[command.toolName].blocking) {
+                return {
+                    status: 'block',
+                    output: `Blocking Tool ${command.toolName} called`
+                }
+            }
+        }
+
+        return {
+            status: 'continue'
+        }
+    }
+
+    private async executeToolCalls(toolCalls: ToolCalls) {
         for (const command of toolCalls) {
             const { reasoning, ...functionParams } = command.input as any;
 
@@ -100,16 +124,8 @@ export class Agent {
 
             console.log(chalk.whiteBright(command.toolName) + " | " + chalk.gray(reasoning))
 
-            if (this.loadedFunctions[command.toolName].blocking) exitSignal = true
-            if (command.toolName == 'exit') {
-                exitMessage = functionParams.returnMessage
-                continue
-            }
-
             try {
                 const result = await this.loadedFunctions[command.toolName].execute(functionParams)
-                if (exitSignal) exitMessage = result
-
                 this.history.add({
                     type: 'ToolOutput',
                     returnValue: result
@@ -124,8 +140,6 @@ export class Agent {
                 })
             }
         }
-
-        if (exitSignal) throw new ExitSignal(exitMessage)
     }
 
     private getSystemPrompt() {
