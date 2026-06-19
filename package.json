@@ -1,0 +1,32 @@
+{
+    "name": "typescript-init",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "watch": "tsc -watch -p ./",
+        "build": "tsc -p ./"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Pexeus/templates.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Pexeus/templates/issues"
+    },
+    "homepage": "https://github.com/Pexeus/templates#readme",
+    "description": "",
+    "devDependencies": {
+        "@types/node": "^25.9.3",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "ai": "^6.0.207",
+        "chalk": "^5.6.2",
+        "dotenv": "^17.4.2",
+        "zod": "^4.4.3"
+    }
+}
