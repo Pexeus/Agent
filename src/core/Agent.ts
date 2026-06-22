@@ -7,7 +7,6 @@ import chalk from "chalk";
 import { History } from "./History.js";
 import z from "zod";
 import { writeFileSync } from "node:fs";
-import path from "node:path";
 
 export class Agent {
     private workspace: Workspace;
@@ -30,7 +29,8 @@ export class Agent {
             blocking: true,
             description: 'Use this to exit operations with a message',
             parameters: z.object({
-                returnMessage: z.string()
+                returnMessage: z.string(),
+                reasoning: z.string().describe('Short, concise reasoning behind this tool call')
             }),
             execute: async () => { return 'exited operations' }
         }
@@ -53,14 +53,12 @@ export class Agent {
 
     async step(): Promise<StepResult> {
         const state = {
-            workspace: this.workspace.getState(),
-            history: this.history.getCompressed()
+            workspace: await this.workspace.getState(),
+            history: this.history.getCompressed(),
         }
 
-        console.log(path.resolve("./"))
-
-        writeFileSync('./state/history.md', state.history)
-        writeFileSync('./state/workspace.json', JSON.stringify(state.workspace, null, 2))
+        writeFileSync('/home/liam/code/agentV3/state/history.md', state.history)
+        writeFileSync('/home/liam/code/agentV3/state/workspace.json', JSON.stringify(state.workspace, null, 2))
 
         const result = await generateText({
             system: this.systemPrompt,
@@ -69,7 +67,7 @@ export class Agent {
             providerOptions: {
                 google: {
                     thinkingConfig: {
-                        thinkingLevel: 'medium',
+                        thinkingLevel: 'minimal',
                         includeThoughts: true,
                     },
                 },
@@ -77,14 +75,20 @@ export class Agent {
             prompt: JSON.stringify(state)
         })
 
-        console.log(chalk.gray(result.reasoningText));
+        if (result.reasoningText != undefined) {
+            this.log(chalk.gray(result.reasoningText));
+        }
+
+        if (result.text != '') {
+            this.history.add({ type: 'Reasoning', content: result.text })
+            console.log(chalk.bold(result.text) + '\n\n');
+        }
 
         //execute tool calls
         await this.executeToolCalls(result.staticToolCalls)
 
         //return step result
-        const stepResult = await this.getStepStatusResult(result.staticToolCalls)
-        return stepResult
+        return this.getStepStatusResult(result.staticToolCalls)
     }
 
     private async getStepStatusResult(toolCalls: ToolCalls): Promise<StepResult> {
@@ -122,7 +126,7 @@ export class Agent {
                 reasoning: reasoning
             })
 
-            console.log(chalk.whiteBright(command.toolName) + " | " + chalk.gray(reasoning))
+            this.log(chalk.whiteBright(command.toolName) + " | " + chalk.gray(reasoning))
 
             try {
                 const result = await this.loadedFunctions[command.toolName].execute(functionParams)
@@ -132,7 +136,7 @@ export class Agent {
                 })
             }
             catch (err: any) {
-                console.log(chalk.red(err));
+                this.log(chalk.red(err));
 
                 this.history.add({
                     type: 'ToolOutput',
@@ -155,5 +159,9 @@ export class Agent {
         # Tools
         ${toolDefinitions}
         `
+    }
+
+    private log(message: string) {
+        if (this.options.logging) console.log(message)
     }
 }

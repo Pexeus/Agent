@@ -4,7 +4,7 @@ import { tool as vercelTool } from 'ai';
 
 export function getPromt(prompt: string) {
     try {
-        let content = readFileSync(`./src/prompts/${prompt}.md`, 'utf-8')
+        let content = readFileSync(`/home/liam/code/agentV3/src/prompts/${prompt}.md`, 'utf-8')
 
         return content
     }

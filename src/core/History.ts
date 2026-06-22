@@ -15,6 +15,7 @@ export class History {
             if (entry.type == 'ToolCommand') compressedEntries.push(`[${entry.type}] ${entry.function}(${JSON.stringify(this.compressParams(entry.parameters))}) | ${entry.reasoning}`)
             if (entry.type == 'ToolOutput') compressedEntries.push(`[${entry.type}] ${entry.returnValue}`)
             if (entry.type == 'ToolError') compressedEntries.push(`[${entry.type}] ${entry.errorMessage}`)
+            if (entry.type == 'Reasoning') compressedEntries.push(`[${entry.type}] ${entry.content}`)
         }
 
         return compressedEntries.join('\n')

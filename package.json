@@ -1,7 +1,7 @@
 {
-    "name": "typescript-init",
+    "name": "agentv3",
     "version": "1.0.0",
-    "main": "index.js",
+    "main": "build/index.js",
     "type": "module",
     "scripts": {
         "watch": "tsc -watch -p ./",

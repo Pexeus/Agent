@@ -42,7 +42,7 @@ export class FileSystem extends Tool {
         }));
     }
 
-    getState() {
+    async getState() {
         return {
             cwd: this.cwd,
             contents: this.list(this.resolveSafePath("."))
@@ -70,7 +70,6 @@ export class FileSystem extends Tool {
                     return `changed directory to ${this.cwd}`;
                 }
             },
-
             ls: {
                 description: "list directory => only use this for directories outside your current cwd, as cwd is already listed.",
                 blocking: false,

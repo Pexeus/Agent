@@ -25,6 +25,11 @@ export interface ToolError {
     errorMessage: string
 }
 
+export interface Reasoning {
+    type: 'Reasoning'
+    content: string
+}
+
 export interface AgentOptions {
     logging: boolean
 }
@@ -33,7 +38,8 @@ export type HistoryEntry =
     ToolCommand |
     UserMessage |
     ToolOutput |
-    ToolError
+    ToolError |
+    Reasoning
 
 export interface State {
     system: string

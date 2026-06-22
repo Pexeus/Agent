@@ -61,8 +61,8 @@ export class Editor extends Tool {
         const lines = content.split(/\r?\n/);
         const totalLines = content === "" ? 0 : lines.length;
 
-        if (totalLines > 1000) {
-            throw new Error(`File has ${totalLines} lines, which exceeds the 1000-line limit.`);
+        if (totalLines > 2000) {
+            throw new Error(`File has ${totalLines} lines, which exceeds the 2000-line limit.`);
         }
 
         await fs.writeFile(absolutePath, content, 'utf-8');
@@ -76,7 +76,7 @@ export class Editor extends Tool {
     getFunctions(): Record<string, ToolFunction<any>> {
         return {
             open: {
-                description: `Open a File. Always shows the full file content. Files over 1000 lines cannot be opened.`,
+                description: `Open a File. Always shows the full file content. Files over 2000 lines cannot be opened.`,
                 blocking: false,
                 parameters: z.object({
                     path: z.string().describe('File Path relative to your current CWD')

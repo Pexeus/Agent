@@ -9,6 +9,6 @@ export abstract class Tool {
         this.description = description
     }
 
-    abstract getState(): any
+    abstract getState(): Promise<any>
     abstract getFunctions(): Record<string, ToolFunction<any>>;
 }

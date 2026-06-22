@@ -51,12 +51,13 @@ export class Workspace {
         return tools
     }
 
-    getState() {
+    async getState() {
         const state: Record<string, string> = {}
 
         for (const name of Object.keys(this.tools)) {
-            const toolState = this.tools[name].getState()
-            if (toolState) state[name] = this.tools[name].getState()
+            const toolState = await this.tools[name].getState()
+
+            if (toolState) state[name] = toolState
         }
 
         return state
