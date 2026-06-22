@@ -57,9 +57,6 @@ export class Agent {
             history: this.history.getCompressed(),
         }
 
-        writeFileSync('/home/liam/code/agentV3/state/history.md', state.history)
-        writeFileSync('/home/liam/code/agentV3/state/workspace.json', JSON.stringify(state.workspace, null, 2))
-
         const result = await generateText({
             system: this.systemPrompt,
             model: google('gemini-3.5-flash'),

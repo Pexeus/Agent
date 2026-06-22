@@ -4,7 +4,7 @@ import { ToolFunction } from "../types.js";
 import z from "zod";
 import path from "path";
 import { promisify } from "util";
-import { execFile } from "child_process";
+import { execFile, execFileSync } from "child_process";
 
 const execFileAsync = promisify(execFile);
 
@@ -16,6 +16,12 @@ export class FileSystem extends Tool {
         super("FileSystem", "File System Access (Explorer)");
         this.root = path.resolve(virtualRoot);
         this.cwd = "/";
+
+        try {
+            execFileSync("rg", ["--version"], { stdio: "ignore" });
+        } catch {
+            throw new Error("ripgrep (rg) is not installed or not in PATH. Install it from https://github.com/BurntSushi/ripgrep (Required for FS Search)");
+        }
     }
 
     private resolveSafePath(targetPath: string): string {

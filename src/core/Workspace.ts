@@ -1,6 +1,5 @@
 import z from "zod";
 import { Tool } from "./Tool.js";
-import { tool as vercelTool } from 'ai';
 import { ToolFunction } from "../types.js";
 
 export class Workspace {
